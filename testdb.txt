@@ -1,0 +1,527 @@
+﻿Practical 01: Simple, Multiple & Polynomial Regression
+________________
+
+
+Execution Environment and Prerequisites
+Dataset: Requires Prac01.csv and salaryDatasetForMultiRegression.csv saved in the same directory as your Python script (or generated directly via DataFrame in memory).
+________________
+
+
+1. Verify Library Installation Before running the script, ensure the required data science libraries are installed. Open Command Prompt (CMD) and run: pip install scikit-learn pandas numpy matplotlib
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import mean_squared_error, r2_score
+
+
+# ==========================================
+# PART A: SIMPLE LINEAR REGRESSION
+# ==========================================
+print("--- PART A: Simple Linear Regression ---")
+
+
+# Load Dataset (Using raw string r"" prevents path errors)
+data = pd.read_csv(r"Prac01.csv")
+
+
+# Separate Features (2D matrix) and Target (1D vector)
+X = data[['YearsExperience']]
+y = data['Salary']
+
+
+# Split dataset into training (75%) and testing (25%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+
+# Train Simple Linear Regression Model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+
+# Predict and Evaluate
+y_pred = model.predict(X_test)
+print('Model Slope (Coef):', model.coef_)
+print('Model Intercept:', model.intercept_)
+print('MSE:', mean_squared_error(y_test, y_pred))
+print('R2 Score:', r2_score(y_test, y_pred))
+
+
+# Plot Simple Regression Line
+plt.scatter(X, y, color='blue', label='Actual Data')
+plt.plot(X, model.predict(X), color='red', label='Regression Line')
+plt.xlabel('Experience (Years)')
+plt.ylabel('Salary')
+plt.title('Simple Linear Regression')
+plt.legend()
+plt.show()
+
+
+# ==========================================
+# PART B: MULTIPLE LINEAR REGRESSION
+# ==========================================
+print("\n--- PART B: Multiple Linear Regression ---")
+
+
+# Load Dataset for Multiple Features
+multi_data = pd.read_csv(r"salaryDatasetForMultiRegression.csv")
+
+
+# Drop target column to isolate all independent features
+X_multi = multi_data.drop('Salary', axis=1)
+y_multi = multi_data['Salary']
+
+
+# Split dataset
+X_train_m, X_test_m, y_train_m, y_test_m = train_test_split(X_multi, y_multi, random_state=42)
+
+
+# Train Multiple Linear Regression Model
+multi_model = LinearRegression()
+multi_model.fit(X_train_m, y_train_m)
+
+
+# Predict and Evaluate
+y_pred_m = multi_model.predict(X_test_m)
+print('Multiple Regression Coefs:', multi_model.coef_)
+print('Multiple Regression Intercept:', multi_model.intercept_)
+print('MSE:', mean_squared_error(y_test_m, y_pred_m))
+print('R2 Score:', r2_score(y_test_m, y_pred_m))
+
+
+# ==========================================
+# PART C: POLYNOMIAL REGRESSION
+# ==========================================
+print("\n--- PART C: Polynomial Regression ---")
+
+
+# Transform features to polynomial terms (Degree 3)
+poly = PolynomialFeatures(degree=3)
+X_poly = poly.fit_transform(X_multi)
+
+
+# Train Model on Polynomial Features
+poly_model = LinearRegression()
+poly_model.fit(X_poly, y_multi)
+
+
+# Predict
+poly_pred = poly_model.predict(X_poly)
+print('Polynomial Coefficients:', poly_model.coef_)
+
+
+# Plot Polynomial Fit
+plt.scatter(multi_data['YearsExperience'], y_multi, color='blue', label='Actual Data')
+plt.plot(multi_data['YearsExperience'], poly_pred, color='red', label='Polynomial Fit')
+plt.xlabel('Years Experience')
+plt.ylabel('Salary')
+plt.title('Polynomial Regression')
+plt.legend()
+plt.show()
+
+
+________________
+
+
+Error & Exception Handling Guide
+* Error: SyntaxError: (unicode error) 'unicodeescape'
+
+   * Cause: Windows backslash \U in full file paths (such as C:\Users\Sarthak\...) is interpreted by Python as an incomplete Unicode escape sequence.
+   * Fix: Prefix the path with an r to make it a raw string (e.g., pd.read_csv(r"C:\Users\...")) or use forward slashes (e.g., pd.read_csv("C:/Users/...")).
+   * Error: FileNotFoundError: [Errno 2] No such file or directory
+
+      * Cause: The CSV file is not located in the active working directory, or Windows hid the .csv extension (naming the file Prac01.csv.csv).
+      * Fix: Save the Python script and CSV files in the exact same folder, or check file properties in File Explorer to verify the extension.
+      * Error: KeyError: 'Salary' or 'YearsExperience'
+
+         * Cause: Extra hidden trailing spaces or letter capitalization mismatches in the CSV column header row.
+         * Fix: Open the CSV file in Notepad or Excel, remove trailing whitespace from row 1, and ensure column names match Salary and YearsExperience exactly.
+         * Error: ModuleNotFoundError: No module named 'sklearn'
+
+            * Cause: The scikit-learn package is missing from the system environment.
+            * Fix: Open Command Prompt (CMD) and run pip install scikit-learn pandas numpy matplotlib.
+            * Error: ValueError: Expected 2D array, got 1D array
+
+               * Cause: Passing a 1D Pandas series data['YearsExperience'] as feature matrix X instead of a 2D DataFrame.
+               * Fix: Use double square brackets data[['YearsExperience']] to maintain a 2D shape for feature inputs.
+
+
+Practical 02: Artificial Neural Network (ANN)
+________________
+
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+
+# Load built-in Iris dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+
+# Split dataset into training (80%) and testing (20%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+# Feature Scaling
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+
+# Build Neural Network Architecture
+model = Sequential()
+model.add(Dense(units=8, activation='relu', input_shape=(4,)))
+model.add(Dense(units=6, activation='relu'))
+model.add(Dense(units=3, activation='softmax'))
+
+
+# Compile Model
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+
+# Train Model
+history = model.fit(X_train, y_train, epochs=50, batch_size=8, validation_split=0.2)
+
+
+# Predict and Evaluate
+predictions = model.predict(X_test)
+y_pred = np.argmax(predictions, axis=1)
+
+
+print('Accuracy:', accuracy_score(y_test, y_pred))
+print('Confusion Matrix:\n', confusion_matrix(y_test, y_pred))
+print('Classification Report:\n', classification_report(y_test, y_pred))
+
+
+# Plot Accuracy
+plt.figure(figsize=(8, 5))
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Training vs Validation Accuracy')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+________________
+
+
+Error & Exception Handling Guide
+               * Error: ModuleNotFoundError: No module named 'tensorflow'
+
+                  * Cause: TensorFlow is not installed in the currently active Python environment.
+                  * Fix: Open Command Prompt (CMD) and run pip install tensorflow.
+                  * Error: ValueError: Found input variables with inconsistent numbers of samples
+
+                     * Cause: Mismatch between the features array X and target array y during train_test_split.
+                     * Fix: Ensure X = iris.data and y = iris.target are assigned directly from load_iris() without modifying row lengths.
+                     * Error: ValueError: Data cardinality is ambiguous or Loss Calculation Failure
+
+                        * Cause: Using categorical_crossentropy instead of sparse_categorical_crossentropy when targets y are integer class labels (0, 1, 2).
+                        * Fix: Use loss='sparse_categorical_crossentropy' in model.compile() so integer class targets are processed correctly without one-hot encoding.
+                        * Warning Logs: I tensorflow/core/platform/cpu_feature_guard.cc...
+
+                           * Cause: Standard TensorFlow diagnostic warnings indicating CPU instruction optimization availability.
+                           * Fix: These are non-fatal informational messages and can be safely ignored; the script will continue executing normally.
+                           * Incorrect Evaluation / Data Leakage Error
+
+                              * Cause: Running fit_transform() on X_test instead of transform().
+                              * Fix: Always run scaler.fit_transform(X_train) on training data, but only scaler.transform(X_test) on test data to prevent data leakage.
+Practical 03: Implementing Random Forest Algorithm
+________________
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+
+
+# Generate sample housing dataset directly in code
+data = pd.DataFrame({
+    'Area': ,
+    'Bedrooms':,
+    'Age':,
+    'Price':
+})
+
+
+# Separate Features (Area, Bedrooms, Age) and Target (Price)
+X = data[['Area', 'Bedrooms', 'Age']]
+y = data['Price']
+
+
+# Split dataset into training (80%) and testing (20%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+
+
+# Instantiate and train Random Forest Regressor
+model = RandomForestRegressor(n_estimators=100, max_depth=5, random_state=42)
+model.fit(X_train, y_train)
+
+
+# Predict test set and evaluate metrics
+prediction = model.predict(X_test)
+print('R2 Score:', r2_score(y_test, prediction))
+print('Mean Squared Error:', mean_squared_error(y_test, prediction))
+
+
+# Predict price for a new house [Area=2500 sqft, 3 Bedrooms, 10 Years Old]
+new_house = pd.DataFrame([], columns=['Area', 'Bedrooms', 'Age'])
+predicted_price = model.predict(new_house)
+print('Predicted Price for new house:', predicted_price)
+
+
+# Plot Feature Importances
+plt.figure(figsize=(6, 4))
+plt.bar(X.columns, model.feature_importances_, color='teal')
+plt.title('Random Forest - Feature Importances')
+plt.xlabel('Features')
+plt.ylabel('Importance Score')
+plt.show()
+
+
+Practical 04: Installation and Configuration of Hadoop
+                              * step one - Download Java JDK (JDK 8 or 17) and install it in a directory path without spaces (such as C:\Java).
+                              * step two - Download the Apache Hadoop binary archive package and extract it directly to your C drive at C:\hadoop.
+                              * step three - Download Windows-compatible binary executables (winutils.exe and hadoop.dll) and paste them into C:\hadoop\bin.
+                              * step four - Open Environment Variables in Windows settings and create System Variables HADOOP_HOME set to C:\hadoop and JAVA_HOME set to C:\Java.
+                              * step five - Add %HADOOP_HOME%\bin, %HADOOP_HOME%\sbin, and %JAVA_HOME%\bin to your System Path variable.
+                              * step six - Open hadoop-env.cmd inside C:\hadoop\etc\hadoop\ using Notepad and set JAVA_HOME=C:\Java.
+                              * step seven - Edit core-site.xml in Notepad to set the default HDFS cluster storage address to hdfs://localhost:9000.
+                              * step eight - Create namenode and datanode folders inside C:\hadoop\data\, and define their folder paths inside hdfs-site.xml.
+                              * step nine - Edit mapred-site.xml to set the execution framework to yarn, and configure the shuffle handler service inside yarn-site.xml.
+                              * step ten - Open Command Prompt as Administrator, navigate to C:\hadoop\sbin\, and execute hdfs namenode -format to initialize HDFS storage.
+                              * step eleven - Start the HDFS and YARN daemons by executing start-dfs.cmd followed by start-yarn.cmd.
+                              * step twelve - Verify running services by typing jps in Command Prompt, and check HDFS web status by opening http://localhost:9870 in your browser.
+________________
+
+
+Practical 05: MapReduce WordCount Program in Hadoop
+                              * step one - Create a local project folder and save your WordCount.java source file containing Mapper, Reducer, and Driver classes inside it.
+                              * step two - Open Command Prompt as Administrator and set the Hadoop classpath variable so the compiler can locate required Hadoop libraries.
+                              * step three - Compile WordCount.java using the javac command to generate compiled .class files.
+                              * step four - Package the compiled .class files into an executable archive named WordCount.jar using the Java jar tool.
+                              * step five - Start Hadoop storage and resource services from C:\hadoop\sbin\ using start-dfs.cmd and start-yarn.cmd.
+                              * step six - Create a new input directory inside the HDFS cluster using the hdfs dfs -mkdir command.
+                              * step seven - Create a sample text file on your local machine and upload it to the HDFS input directory using the hdfs dfs -put command.
+                              * step eight - Execute the MapReduce job using the hadoop jar command by passing WordCount.jar, class name, HDFS input path, and HDFS output path.
+                              * step nine - Monitor execution logs in the terminal until Map and Reduce tasks reach 100% completion.
+                              * step ten - View the calculated word count output directly from the HDFS output directory using the hdfs dfs -cat command.
+
+
+Practical 06: Spark Configuration and Scala Basics
+Execution Environment and Prerequisites
+                              * Environment: Windows Command Prompt (CMD) and interactive spark-shell.
+                              * Prerequisites: Java JDK 8/17 and Apache Spark installed on system path[3][4].
+________________
+
+
+Step-by-Step Execution Flow
+                              * step one - Open Command Prompt and verify Spark installation by typing spark-submit.cmd --version[1].
+                              * step two - Launch the interactive Scala REPL terminal by executing spark-shell.
+________________
+
+
+Commands for spark-shell
+val numbers = Array(10, 20, 30, 40, 50)
+val numbersRDD = sc.parallelize(numbers)
+
+
+numbersRDD.count()
+numbersRDD.first()
+
+
+val filteredRDD = numbersRDD.filter(x =&gt; x &gt; 25)
+filteredRDD.collect().foreach(println)
+________________
+
+
+Error & Exception Handling Guide
+                              * Error: 'spark-shell' is not recognized as an internal or external command
+                              * Cause: Environment variables are missing or incorrect[4][8].
+                              * Fix: Ensure SPARK_HOME is set to C:\Spark and %SPARK_HOME%\bin is added to your system Path variable[4][9].
+                              * Error: UnsupportedClassVersionError or Java JVM Exception
+                              * Cause: Incompatible Java version running in background[3].
+                              * Fix: Ensure JAVA_HOME points directly to JDK 8 or JDK 17 root folder without a trailing \bin[3][4].
+Practical 07: Spark SQL
+________________
+
+
+Commands for spark-shell
+import spark.implicits._
+
+
+val df = Seq(("Alice", 25), ("Bob", 19), ("Charlie", 30), ("David", 15)).toDF("name", "age")
+
+
+df.show()
+df.printSchema()
+
+
+df.select($"name", "age" &gt; 20).show()
+
+
+df.select($"name", $"age" + 1).show()
+________________
+
+
+Error & Exception Handling Guide
+                              * Error: not found: value $
+                              * Cause: Missing implicit encoders import.
+                              * Fix: Run import spark.implicits._ inside spark-shell prior to using column dollar notation ($"colName").
+                              * Error: AnalysisException: Cannot resolve column name
+                              * Cause: Column name string mismatch.
+                              * Fix: Verify column names inside select or filter match case-sensitive definitions defined in toDF().
+Practical 08: Spark GraphX
+________________
+
+
+Commands for spark-shell
+import org.apache.spark._
+import org.apache.spark.rdd.RDD
+import org.apache.spark.graphx._
+
+
+val vertices = Array((1L, "A"), (2L, "B"), (3L, "C"))
+val vRDD = sc.parallelize(vertices)
+
+
+val edges = Array(Edge(1L, 2L, 1800), Edge(2L, 3L, 800), Edge(3L, 1L, 1400))
+val eRDD = sc.parallelize(edges)
+
+
+val graph = Graph(vRDD, eRDD, "nowhere")
+
+
+graph.vertices.collect.foreach(println)
+graph.edges.collect.foreach(println)
+
+
+println("Total Vertices: " + graph.numVertices)
+println("Total Edges: " + graph.numEdges)
+
+
+graph.triplets.take(3).foreach(println)
+graph.inDegrees.collect().foreach(println)
+graph.outDegrees.collect().foreach(println)
+graph.degrees.collect().foreach(println)
+________________
+
+
+Error & Exception Handling Guide
+                              * Error: Type mismatch: expected Long, got Int
+                              * Cause: Passing standard integer values as vertex identifiers.
+                              * Fix: GraphX vertex IDs require Long types; append L to vertex IDs (e.g., 1L, 2L, 3L).
+                              * Error: object graphx is not a member of package org.apache.spark
+                              * Cause: Attempting to run Scala code in standard Scala REPL instead of Spark REPL.
+                              * Fix: Execute commands inside spark-shell where GraphX binaries are loaded automatically.
+Practical 09: PySpark Data Analytics
+________________
+
+
+Code for Python IDLE
+import pandas as pd
+from pyspark.sql import SparkSession
+
+
+# 1. Create sample CSV locally
+sample_data = pd.DataFrame({
+    'Name': ['Alice', 'Bob', 'Charlie', 'David', None],
+    'Age': [1, 5, 15, 18, 23],
+    'Experience': [1, 5, 8, 1, None]
+})
+sample_data.to_csv('pyspark-prac.csv', index=False)
+
+
+# 2. Start SparkSession
+spark = SparkSession.builder.appName('Prac09').getOrCreate()
+
+
+# 3. Read CSV into PySpark DataFrame
+df = spark.read.csv('pyspark-prac.csv', header=True, inferSchema=True)
+
+
+print("--- Initial PySpark DataFrame ---")
+df.show()
+
+
+print("--- Schema Structure ---")
+df.printSchema()
+
+
+print("--- Summary Statistics ---")
+df.describe().show()
+
+
+# 4. Selecting and Filtering Data
+print("--- Filtering Rows where Age &gt; 25 ---")
+df.filter(df['Age'] &gt; 25).show()
+
+
+# 5. Adding Derived Column
+df = df.withColumn('Exp_after_2yr', df['Experience'] + 2)
+df.show()
+
+
+# 6. Renaming and Dropping Column
+df = df.withColumnRenamed('Name', 'Full_Name')
+df = df.drop('Exp_after_2yr')
+df.show()
+
+
+# 7. Dropping NULL rows
+df_cleaned = df.na.drop(how="any")
+df_cleaned.show()
+________________
+
+
+Error & Exception Handling Guide
+                              * Error: ModuleNotFoundError: No module named 'pyspark'
+                              * Cause: PySpark package is not installed in the Python environment running IDLE[19][20].
+                              * Fix: Open Command Prompt (CMD) and run pip install pyspark.
+                              * Error: Py4JJavaError or JAVA_GATEWAY_EXITED
+                              * Cause: JAVA_HOME environment variable is misconfigured[22].
+                              * Fix: Ensure JAVA_HOME points directly to the Java root folder (e.g., C:\Java) without trailing \bin[4][22].
+                              * Error: AnalysisException: Cannot resolve column name
+                              * Cause: Capitalization mismatch in PySpark column operations.
+                              * Fix: Verify string casing matches existing DataFrame schema (e.g., 'Experience' vs 'experience').
+________________
+
+
+Practical 10: Installation of Apache HBase and Shell Commands
+                              * step one - Download the Apache HBase binary package and extract it directly to your C drive at C:\hbase.
+                              * step two - Set the HBASE_HOME system environment variable to C:\hbase and add C:\hbase\bin to your System Path.
+                              * step three - Open hbase-env.cmd inside C:\hbase\conf\ using Notepad and define your JAVA_HOME path.
+                              * step four - Edit hbase-site.xml in C:\hbase\conf\ to configure the HBase root directory and Zookeeper data directory paths.
+                              * step five - Ensure Hadoop HDFS services (start-dfs.cmd) are running prior to starting HBase.
+                              * step six - Open Command Prompt, navigate to C:\hbase\bin\, and start the HBase master daemon using start-hbase.cmd.
+                              * step seven - Launch the interactive command terminal by typing hbase shell.
+                              * step eight - Create a table with column families using the create 'tablename', 'columnfamily1', 'columnfamily2' command.
+                              * step nine - Insert records using the put command specifying table name, row key, column family:qualifier, and cell value.
+                              * step ten - Retrieve table contents using scan 'tablename' to view all records, or get 'tablename', 'rowkey' for specific entries.
+                              * step eleven - Delete or remove tables when finished using disable 'tablename' followed by drop 'tablename'.
