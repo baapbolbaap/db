@@ -1,0 +1,1852 @@
+# Practical 1A – Add Two Numbers and Store in Blocks (JavaScript)
+
+## 1. Code
+
+**File: add.js**
+```javascript
+const crypto = require('crypto');
+
+class Block {
+  constructor(index, timestamp, n1, n2, previousHash = '') {
+    this.index = index;
+    this.timestamp = timestamp;
+    this.n1 = n1;
+    this.n2 = n2;
+    this.sum = n1 + n2;
+    this.previousHash = previousHash;
+    this.hash = this.calculateHash();
+  }
+
+  calculateHash() {
+    return crypto.createHash('sha256')
+      .update(`${this.index}${this.timestamp}${this.sum}${this.previousHash}`)
+      .digest('hex');
+  }
+}
+
+class Blockchain {
+  constructor() {
+    this.chain = [new Block(0, Date.now(), 0, 0, '0')];
+  }
+
+  getLatestBlock() { 
+    return this.chain[this.chain.length - 1]; 
+  }
+
+  addBlock(block) {
+    block.previousHash = this.getLatestBlock().hash;
+    block.hash = block.calculateHash();
+    this.chain.push(block);
+  }
+}
+
+module.exports = { Block, Blockchain };
+```
+
+**File: test.js**
+```javascript
+const { Block, Blockchain } = require('./add');
+const chain = new Blockchain();
+
+chain.addBlock(new Block(1, Date.now(), 12, 24));
+chain.addBlock(new Block(2, Date.now(), 58, 9));
+
+console.log(JSON.stringify(chain, null, 2));
+```
+
+## 2. Steps to Perform
+1. Install Node.js (LTS) and check it with: `node -v`
+2. Create a new folder and save `add.js` and `test.js` in it, using exactly these file names.
+3. Open Command Prompt / VS Code terminal in that folder.
+4. Run: `node test.js`
+
+===================================================================================
+
+# Practical 1B – Prime Number Check Using Blocks (JavaScript)
+
+## 1. Code
+
+**File: prime.js**
+```javascript
+const crypto = require('crypto');
+
+class Block {
+  constructor(index, timestamp, number, previousHash = '') {
+    this.index = index;
+    this.timestamp = timestamp;
+    this.number = number;
+    this.result = this.isPrime(number);
+    this.previousHash = previousHash;
+    this.hash = this.calculateHash();
+  }
+
+  isPrime(n) {
+    if (n < 2) return false;
+    for (let i = 2; i <= Math.sqrt(n); i++)
+      if (n % i === 0) return false;
+    return true;
+  }
+
+  calculateHash() {
+    return crypto.createHash('sha256')
+      .update(`${this.index}${this.timestamp}${this.number}${this.result}${this.previousHash}`)
+      .digest('hex');
+  }
+}
+
+class Blockchain {
+  constructor() { 
+    this.chain = [new Block(0, Date.now(), 0, '0')]; 
+  }
+  
+  addBlock(block) {
+    block.previousHash = this.chain[this.chain.length - 1].hash;
+    block.hash = block.calculateHash();
+    this.chain.push(block);
+  }
+}
+
+module.exports = { Block, Blockchain };
+```
+
+**File: test.js**
+```javascript
+const { Block, Blockchain } = require('./prime');
+const chain = new Blockchain();
+
+chain.addBlock(new Block(1, Date.now(), 24));
+chain.addBlock(new Block(2, Date.now(), 67));
+
+console.log(chain.chain.map(b => ({ number: b.number, prime: b.result })));
+```
+
+## 2. Steps to Perform
+1. Install Node.js (LTS) and check it with: `node -v`
+2. Create a new folder and save `prime.js` and `test.js` in it, using exactly these file names.
+3. Open Command Prompt / VS Code terminal in that folder.
+4. Run: `node test.js`
+
+==================================================================
+
+# Practical 1C – KrishnaMurthy Number Check Using Blocks
+
+## 1. Code
+
+**File: krishnamurthy.js**
+```javascript
+const crypto = require('crypto');
+ 
+class Block {
+  constructor(index, number, previousHash = '0') {
+    this.index = index;
+    this.timestamp = Date.now();
+    this.number = number;
+    this.result = this.isKrishnaMurthy(number);
+    this.previousHash = previousHash;
+    this.hash = this.calculateHash();
+  }
+ 
+  factorial(n) {
+    let fact = 1;
+    for (let i = 2; i <= n; i++) fact *= i;
+    return fact;
+  }
+ 
+  isKrishnaMurthy(n) {
+    if (n < 0) return false;
+    let temp = n, sum = 0;
+    do {
+      sum += this.factorial(temp % 10);
+      temp = Math.floor(temp / 10);
+    } while (temp > 0);
+    return sum === n;
+  }
+ 
+  calculateHash() {
+    return crypto.createHash('sha256')
+      .update(`${this.index}${this.timestamp}${this.number}${this.result}${this.previousHash}`)
+      .digest('hex');
+  }
+}
+ 
+class Blockchain {
+  constructor() { this.chain = [new Block(0, 0)]; }
+  addNumber(n) {
+    const previous = this.chain[this.chain.length - 1];
+    this.chain.push(new Block(this.chain.length, n, previous.hash));
+  }
+}
+ 
+const chain = new Blockchain();
+[145, 123, 40585].forEach(n => chain.addNumber(n));
+console.log(chain.chain.map(b => ({ number: b.number, krishnaMurthy: b.result })));
+```
+
+## 2. Steps to Perform
+1. Install Node.js and check using `node -v`.
+2. Save the code as `krishnamurthy.js`.
+3. Open Command Prompt / VS Code terminal in that folder.
+4. Run `node krishnamurthy.js`.
+
+==============================================================
+
+# Practical 2A – Armstrong Number Check Using Blocks (JavaScript)
+
+## 1. Code
+
+**File: armstrong.js**
+```javascript
+const crypto = require('crypto');
+
+class Block {
+  constructor(index, number, previousHash = '0') {
+    this.index = index;
+    this.timestamp = Date.now();
+    this.number = number;
+    this.result = this.isArmstrong(number);
+    this.previousHash = previousHash;
+    this.hash = this.calculateHash();
+  }
+
+  isArmstrong(n) {
+    if (n < 0) return false;
+    const digits = String(n).length;
+    let temp = n, sum = 0;
+    do {
+      const d = temp % 10;
+      sum += d ** digits;
+      temp = Math.floor(temp / 10);
+    } while (temp > 0);
+    return sum === n;
+  }
+
+  calculateHash() {
+    return crypto.createHash('sha256')
+      .update(`${this.index}${this.timestamp}${this.number}${this.result}${this.previousHash}`)
+      .digest('hex');
+  }
+}
+
+class Blockchain {
+  constructor() { this.chain = [new Block(0, 0)]; }
+  addNumber(n) {
+    const prev = this.chain[this.chain.length - 1];
+    this.chain.push(new Block(this.chain.length, n, prev.hash));
+  }
+}
+
+const chain = new Blockchain();
+[145, 45, 153, 0].forEach(n => chain.addNumber(n));
+console.log(chain.chain.map(b => ({ number: b.number, armstrong: b.result })));
+```
+
+## 2. Steps to Perform
+1. Install Node.js (LTS) and check it with: `node -v`
+2. Create a new folder and save `armstrong.js` in it.
+3. Open Command Prompt / VS Code terminal in that folder.
+4. Run: `node armstrong.js`
+
+=============================================================
+
+# Practical 2B – Happy Number Check Using Blocks (JavaScript)
+
+## 1. Code
+
+**File: happyNumber.js**
+```javascript
+const crypto = require('crypto');
+
+class Block {
+  constructor(index, number, previousHash = '0') {
+    this.index = index;
+    this.timestamp = Date.now();
+    this.number = number;
+    this.result = this.isHappy(number);
+    this.previousHash = previousHash;
+    this.hash = this.calculateHash();
+  }
+
+  isHappy(n) {
+    const seen = new Set();
+    while (n !== 1 && !seen.has(n)) {
+      seen.add(n);
+      let sum = 0;
+      while (n > 0) {
+        const d = n % 10;
+        sum += d * d;
+        n = Math.floor(n / 10);
+      }
+      n = sum;
+    }
+    return n === 1;
+  }
+
+  calculateHash() {
+    return crypto.createHash('sha256')
+      .update(`${this.index}${this.timestamp}${this.number}${this.result}${this.previousHash}`)
+      .digest('hex');
+  }
+}
+
+class Blockchain {
+  constructor() { this.chain = [new Block(0, 0)]; }
+  addNumber(n) {
+    const prev = this.chain[this.chain.length - 1];
+    this.chain.push(new Block(this.chain.length, n, prev.hash));
+  }
+}
+
+const chain = new Blockchain();
+[24, 13, 19].forEach(n => chain.addNumber(n));
+console.log(chain.chain.map(b => ({ number: b.number, happy: b.result })));
+```
+
+## 2. Steps to Perform
+1. Install Node.js (LTS) and check it with: `node -v`
+2. Create a new folder and save `happyNumber.js` in it.
+3. Open Command Prompt / VS Code terminal in that folder.
+4. Run: `node happyNumber.js`
+
+============================================================================
+
+# Practical 2C – Kaprekar Number Check Using Blocks (JavaScript)
+
+## 1. Code
+
+**File: kaprekar.js**
+```javascript
+const crypto = require('crypto');
+
+class Block {
+  constructor(index, number, previousHash = '0') {
+    this.index = index;
+    this.timestamp = Date.now();
+    this.number = number;
+    this.result = this.isKaprekar(number);
+    this.previousHash = previousHash;
+    this.hash = this.calculateHash();
+  }
+
+  isKaprekar(n) {
+    if (n === 1) return true;
+    if (n <= 0) return false;
+    const square = String(n * n);
+    for (let i = 1; i < square.length; i++) {
+      const left = Number(square.slice(0, i));
+      const right = Number(square.slice(i));
+      if (left + right === n) return true;
+    }
+    return false;
+  }
+
+  calculateHash() {
+    return crypto.createHash('sha256')
+      .update(`${this.index}${this.timestamp}${this.number}${this.result}${this.previousHash}`)
+      .digest('hex');
+  }
+}
+
+class Blockchain {
+  constructor() { this.chain = [new Block(0, 1)]; }
+  addNumber(n) {
+    const prev = this.chain[this.chain.length - 1];
+    this.chain.push(new Block(this.chain.length, n, prev.hash));
+  }
+}
+
+const chain = new Blockchain();
+[1, 9, 45, 10].forEach(n => chain.addNumber(n));
+console.log(chain.chain.map(b => ({ number: b.number, kaprekar: b.result })));
+```
+
+## 2. Steps to Perform
+1. Install Node.js (LTS) and check it with: `node -v`
+2. Create a new folder and save `kaprekar.js` in it.
+3. Open Command Prompt / VS Code terminal in that folder.
+4. Run: `node kaprekar.js`
+
+==================================================
+
+# Practical 3A – Anagram Checker Blockchain (Python)
+
+## 1. Code
+
+**File: anagrams.py**
+```python
+import hashlib
+from datetime import datetime
+
+class Block:
+    def __init__(self, index, word1, word2, result, previous_hash):
+        self.index = index
+        self.timestamp = str(datetime.now())
+        self.word1 = word1
+        self.word2 = word2
+        self.result = result
+        self.previous_hash = previous_hash
+        self.hash = self.calculate_hash()
+
+    def calculate_hash(self):
+        data = f"{self.index}{self.timestamp}{self.word1}{self.word2}{self.result}{self.previous_hash}"
+        return hashlib.sha256(data.encode()).hexdigest()
+
+class Blockchain:
+    def __init__(self):
+        self.chain = [Block(0, "Genesis", "Genesis", True, "0")]
+
+    def add_block(self, word1, word2):
+        result = sorted(word1.lower()) == sorted(word2.lower())
+        self.chain.append(Block(len(self.chain), word1, word2, result, self.chain[-1].hash))
+
+    def is_valid(self):
+        for i in range(1, len(self.chain)):
+            current, previous = self.chain[i], self.chain[i - 1]
+            if current.hash != current.calculate_hash() or current.previous_hash != previous.hash:
+                return False
+        return True
+
+chain = Blockchain()
+chain.add_block("bread", "apple")
+chain.add_block("listen", "silent")
+
+for b in chain.chain:
+    print(b.index, b.word1, b.word2, b.result, b.hash)
+    
+print("Blockchain valid:", chain.is_valid())
+```
+
+## 2. Steps to Perform
+1. Install Python 3 and check it with: `python --version`
+2. Save the program as `anagrams.py`.
+3. Open the terminal in that folder.
+4. Run: `python anagrams.py`
+
+===============================================================
+
+# Practical 3B – Bank Deposit and Withdrawal Blockchain (Python)
+
+## 1. Code
+
+**File: transactions.py**
+```python
+import hashlib
+from datetime import datetime
+
+class Block:
+    def __init__(self, index, operation, balance, previous_hash):
+        self.index = index
+        self.timestamp = str(datetime.now())
+        self.operation = operation
+        self.balance = balance
+        self.previous_hash = previous_hash
+        self.hash = self.calculate_hash()
+
+    def calculate_hash(self):
+        data = f"{self.index}{self.timestamp}{self.operation}{self.balance}{self.previous_hash}"
+        return hashlib.sha256(data.encode()).hexdigest()
+
+class Blockchain:
+    def __init__(self):
+        self.chain = [Block(0, "d", 1000, "0")]
+
+    def add_transaction(self, operation, amount):
+        if amount <= 0:
+            print("Amount must be positive")
+            return
+            
+        balance = self.chain[-1].balance
+        operation = operation.lower()
+        
+        if operation == "d":
+            balance += amount
+        elif operation == "w" and amount <= balance:
+            balance -= amount
+        elif operation == "w":
+            print("Insufficient balance")
+            return
+        else:
+            print("Use d for deposit or w for withdrawal")
+            return
+            
+        self.chain.append(Block(len(self.chain), operation, balance, self.chain[-1].hash))
+
+    def is_valid(self):
+        for i in range(1, len(self.chain)):
+            current, previous = self.chain[i], self.chain[i - 1]
+            if current.hash != current.calculate_hash() or current.previous_hash != previous.hash:
+                return False
+        return True
+
+chain = Blockchain()
+chain.add_transaction("d", 100)
+chain.add_transaction("w", 200)
+
+for b in chain.chain:
+    print(b.index, b.operation, b.balance, b.hash)
+    
+print("Blockchain valid:", chain.is_valid())
+```
+
+## 2. Steps to Perform
+1. Install Python 3 and check it with: `python --version`
+2. Save the program as `transactions.py`.
+3. Open the terminal in that folder.
+4. Run: `python transactions.py`
+
+======================================================
+
+# Practical 3C – Student Attendance Blockchain (Python)
+
+## 1. Code
+
+**File: attendance.py**
+```python
+import hashlib
+from datetime import datetime
+
+class Block:
+    def __init__(self, index, name, status, previous_hash):
+        self.index = index
+        self.timestamp = str(datetime.now())
+        self.name = name
+        self.status = status
+        self.previous_hash = previous_hash
+        self.hash = self.calculate_hash()
+
+    def calculate_hash(self):
+        data = f"{self.index}{self.timestamp}{self.name}{self.status}{self.previous_hash}"
+        return hashlib.sha256(data.encode()).hexdigest()
+
+class Blockchain:
+    def __init__(self):
+        self.chain = [Block(0, "Genesis", "-", "0")]
+
+    def add_attendance(self, name, status):
+        status = status.lower()
+        if status not in ("p", "a"):
+            print("Use p for present or a for absent")
+            return
+        self.chain.append(Block(len(self.chain), name, status, self.chain[-1].hash))
+
+    def is_valid(self):
+        for i in range(1, len(self.chain)):
+            current, previous = self.chain[i], self.chain[i - 1]
+            if current.hash != current.calculate_hash() or current.previous_hash != previous.hash:
+                return False
+        return True
+
+chain = Blockchain()
+chain.add_attendance("Khush", "p")
+chain.add_attendance("Sarth", "a")
+
+for b in chain.chain:
+    print(b.index, b.name, b.status, b.hash, b.previous_hash)
+    
+print("Blockchain valid:", chain.is_valid())
+```
+
+## 2. Steps to Perform
+1. Install Python 3 and check it with: `python --version`
+2. Save the program as `attendance.py`.
+3. Open the terminal in that folder.
+4. Run: `python attendance.py`
+
+=====================================================
+
+# Practical 4A – Message Smart Contract (Remix, Solidity)
+
+## 1. Code
+
+**File: first.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract MessageContract {
+    string public message = "Hello MSc CS Students";
+    
+    function setMessage(string memory newMessage) public {
+        message = newMessage;
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Open https://remix.ethereum.org in the browser.
+2. In File Explorer, click the Create new file icon, type `first.sol`, press Enter, and paste the code.
+3. Click the Solidity Compiler icon. In the Compiler dropdown, select `0.8.20` or any later `0.8.x` version.
+4. Click the blue Compile first.sol button. Wait for the green tick.
+5. Click the Deploy & Run Transactions icon.
+6. In the Environment dropdown, select Remix VM. In the Account dropdown, leave the first account selected.
+7. In the Contract dropdown, select `MessageContract`.
+8. Click the orange Deploy button.
+9. Scroll down to Deployed Contracts and click the arrow next to `MessageContract` to expand its functions.
+10. Click the blue message button. It shows `Hello MSc CS Students`.
+11. Type `"Welcome to Blockchain"` in the box next to `setMessage` and click setMessage.
+12. Click the blue message button again to see the new value.
+
+=========================================================
+
+# Practical 4B – Addition Smart Contract (Remix, Solidity)
+
+## 1. Code
+
+**File: Addition.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract AdditionContract {
+    function addNumbers(int256 a, int256 b) public pure returns (int256) {
+        return a + b;
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Open Remix in the browser.
+2. Create `Addition.sol` and paste the code.
+3. Compile with Solidity `0.8.20`.
+4. Deploy using Remix VM.
+5. Next to "addNumbers" type `25, 15`.
+6. Click addNumbers. The result `40` appears below the button.
+7. Repeat with `-10, 4` to get `-6`.
+
+===========================================================================
+
+# Practical 4C – Arithmetic Operations Smart Contract (Remix, Solidity)
+
+## 1. Code
+
+**File: Operations.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract Operations {
+    function add(int256 a, int256 b) public pure returns (int256) { return a + b; }
+    function subtract(int256 a, int256 b) public pure returns (int256) { return a - b; }
+    function multiply(int256 a, int256 b) public pure returns (int256) { return a * b; }
+    
+    function divide(int256 a, int256 b) public pure returns (int256) {
+        require(b != 0, "Cannot divide by zero");
+        return a / b;
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Open Remix, create `Operations.sol`, compile, and deploy using Remix VM.
+2. Next to "add" type `20, 5` and click add. Result: 25.
+3. Next to "subtract" type `20, 5` and click subtract. Result: 15.
+4. Next to "multiply" type `20, 5` and click multiply. Result: 100.
+5. Next to "divide" type `20, 5` and click divide. Result: 4.
+6. Next to "divide" type `20, 0` and click divide. The transaction reverts with "Cannot divide by zero".
+
+===============================================================
+
+# Practical 4D – Palindrome Number Smart Contract (Remix, Solidity)
+
+## 1. Code
+
+**File: Palindrome.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract Palindrome {
+    function isPalindrome(uint256 number) public pure returns (bool) {
+        uint256 original = number;
+        uint256 reversed = 0;
+        
+        while (number > 0) {
+            reversed = reversed * 10 + number % 10;
+            number /= 10;
+        }
+        return original == reversed;
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Open Remix, create `Palindrome.sol`, compile, and deploy.
+2. Next to "isPalindrome" type `121` and click isPalindrome. Result: `true`.
+3. Type `123` and click isPalindrome again. Result: `false`.
+
+==================================================================
+
+# Practical 4E – Student List Smart Contract (Remix, Solidity)
+
+## 1. Code
+
+**File: StudentCount.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract StudentCount {
+    string[] public students;
+    
+    function addStudent(string memory name) public { 
+        students.push(name); 
+    }
+    
+    function getCount() public view returns (uint256) { 
+        return students.length; 
+    }
+    
+    function getStudent(uint256 index) public view returns (string memory) {
+        require(index < students.length, "Invalid index");
+        return students[index];
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Create `StudentCount.sol` in Remix, compile, and deploy.
+2. Next to "addStudent" type `"Khush"` (with quotes) and click addStudent.
+3. Type `"Sarth"` in the same box and click addStudent again.
+4. Click the blue "getCount" button. Result: `2`.
+5. Next to "getStudent" type `0` and click getStudent. Result: `"Khush"`.
+6. Type `5` and click getStudent. Reverts with "Invalid index".
+
+==================================================================
+
+# Practical 4F – Mean, Median and Mode Smart Contract (Remix, Solidity)
+
+## 1. Code
+
+**File: Statistics.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract Statistics {
+    function mean(uint256[] memory numbers) public pure returns (uint256) {
+        require(numbers.length > 0, "Empty array");
+        uint256 sum = 0;
+        for (uint256 i = 0; i < numbers.length; i++) {
+            sum += numbers[i];
+        }
+        return sum / numbers.length;
+    }
+ 
+    function median(uint256[] memory numbers) public pure returns (uint256) {
+        require(numbers.length > 0, "Empty array");
+        for (uint256 i = 0; i < numbers.length; i++) {
+            for (uint256 j = i + 1; j < numbers.length; j++) {
+                if (numbers[j] < numbers[i]) {
+                    uint256 temp = numbers[i];
+                    numbers[i] = numbers[j];
+                    numbers[j] = temp;
+                }
+            }
+        }
+        uint256 mid = numbers.length / 2;
+        if (numbers.length % 2 == 1) return numbers[mid];
+        return (numbers[mid - 1] + numbers[mid]) / 2;
+    }
+ 
+    function mode(uint256[] memory numbers) public pure returns (uint256) {
+        require(numbers.length > 0, "Empty array");
+        uint256 bestValue = numbers[0];
+        uint256 bestCount = 0;
+        for (uint256 i = 0; i < numbers.length; i++) {
+            uint256 count = 0;
+            for (uint256 j = 0; j < numbers.length; j++) {
+                if (numbers[j] == numbers[i]) count++;
+            }
+            if (count > bestCount) {
+                bestCount = count;
+                bestValue = numbers[i];
+            }
+        }
+        return bestValue;
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Create `Statistics.sol` in Remix, compile using `0.8.21`, and deploy.
+2. For each function, enter `[1,2,2,4,5]` and click the function to check results.
+
+====================================================================
+
+# Practical 5 – Struct in Solidity: Student Records (Remix)
+
+## 1. Code
+
+**File: StudentRecords.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+contract StudentRecords {
+    struct Student {
+        string name;
+        uint256 rollNo;
+        uint256 marks;
+    }
+    
+    Student public student;
+    
+    function setStudent(string memory name, uint256 rollNo, uint256 marks) public {
+        student = Student(name, rollNo, marks);
+    }
+    
+    function getStudent() public view returns (string memory, uint256, uint256) {
+        return (student.name, student.rollNo, student.marks);
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Create `StudentRecords.sol` in Remix, compile `0.8.21`, deploy.
+2. Next to "setStudent" type `"Khush", 101, 88`. Click setStudent.
+3. Click "getStudent". Result: `Khush, 101, 88`.
+
+====================================================================
+
+# Practical 5B – Student Test Scores and Grades Using Struct
+
+## 1. Code
+
+**File: StudentGrades.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract StudentGrades {
+    struct Student {
+        string name;
+        uint256 rollNo;
+        uint256 test1;
+        uint256 test2;
+        uint256 test3;
+    }
+ 
+    mapping(uint256 => Student) public students;
+ 
+    function setStudent(
+        uint256 rollNo, string memory name,
+        uint256 test1, uint256 test2, uint256 test3
+    ) public {
+        require(test1 <= 100 && test2 <= 100 && test3 <= 100, "Marks must be 0-100");
+        students[rollNo] = Student(name, rollNo, test1, test2, test3);
+    }
+ 
+    function getTotal(uint256 rollNo) public view returns (uint256) {
+        Student memory s = students[rollNo];
+        return s.test1 + s.test2 + s.test3;
+    }
+ 
+    function getAverage(uint256 rollNo) public view returns (uint256) {
+        return getTotal(rollNo) / 3;
+    }
+ 
+    function getGrade(uint256 rollNo) public view returns (string memory) {
+        uint256 average = getAverage(rollNo);
+        if (average >= 90) return "A+";
+        if (average >= 80) return "A";
+        if (average >= 70) return "B";
+        if (average >= 60) return "C";
+        return "Fail";
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Create `StudentGrades.sol` in Remix, compile, deploy.
+2. Enter `101, "Khush", 90, 80, 85` in setStudent and click it.
+3. Call getTotal with `101`, getAverage with `101`, and getGrade with `101`.
+
+====================================================================
+
+# Practical 5C – Bank Account Transactions Using Struct
+
+## 1. Code
+
+**File: AccountRecords.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract AccountRecords {
+    struct Transaction {
+        string operation;
+        uint256 amount;
+    }
+ 
+    struct Account {
+        uint256 balance;
+        Transaction[] transactions;
+    }
+ 
+    mapping(address => Account) private accounts;
+ 
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit must be greater than zero");
+        accounts[msg.sender].balance += msg.value;
+        accounts[msg.sender].transactions.push(Transaction("Deposit", msg.value));
+    }
+ 
+    function withdraw(uint256 amount) public {
+        require(accounts[msg.sender].balance >= amount, "Insufficient balance");
+        accounts[msg.sender].balance -= amount;
+        accounts[msg.sender].transactions.push(Transaction("Withdrawal", amount));
+        payable(msg.sender).transfer(amount);
+    }
+ 
+    function getBalance() public view returns (uint256) {
+        return accounts[msg.sender].balance;
+    }
+ 
+    function getTransactionCount() public view returns (uint256) {
+        return accounts[msg.sender].transactions.length;
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Open Remix and create `AccountRecords.sol`.
+2. Compile and Deploy.
+3. To deposit, enter `1` in Value, select Ether, then click deposit.
+4. Call getBalance and getTransactionCount.
+5. To withdraw, set Value back to `0 Wei`, enter `500000000000000000` in withdraw, and click it.
+
+=================================================================
+
+# Practical 5D – Perfect Number Smart Contract
+
+## 1. Code
+
+**File: PerfectNumber.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract PerfectNumber {
+    function isPerfect(uint256 number) public pure returns (bool) {
+        if (number < 2) return false;
+        uint256 sum = 1;
+        for (uint256 i = 2; i <= number / 2; i++) {
+            if (number % i == 0) sum += i;
+        }
+        return sum == number;
+    }
+}
+```
+
+## 2. Steps to Perform
+1. Open Remix, create `PerfectNumber.sol`, compile, deploy.
+2. Enter `28` in isPerfect and click it (Expected: `true`).
+3. Repeat with `12` (Expected: `false`).
+
+=======================================================================
+
+# Practical 6A – Mapping in Solidity: Student Marks
+
+## 1. Code
+
+**File: mapping.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+contract StudentMarks {
+    mapping(uint256 => uint256) public marks;
+    
+    function setMarks(uint256 rollNo, uint256 score) public {
+        require(score <= 100, "Marks must be 0-100");
+        marks[rollNo] = score;
+    }
+    
+    function getMarks(uint256 rollNo) public view returns (uint256) {
+        return marks[rollNo];
+    }
+}
+```
+
+==============================================================
+
+# Practical 6B – Mapping/Struct in Solidity: Simple Quiz
+
+## 1. Code
+
+**File: quiz.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+contract Quiz {
+    struct Question {
+        string text;
+        string[4] options;
+        uint8 correctOption;
+    }
+    
+    Question[] public questions;
+    uint256 public correct;
+    uint256 public wrong;
+    
+    event AnswerResult(string question, string answer, bool isCorrect);
+    
+    function addQuestion(string memory text, string[4] memory options, uint8 correctOption) public {
+        require(correctOption < 4, "Invalid correct option");
+        questions.push(Question(text, options, correctOption));
+    }
+    
+    function answerQuestion(uint256 index, uint8 selectedOption) public {
+        require(index < questions.length, "Invalid question");
+        require(selectedOption < 4, "Invalid option");
+        
+        bool isCorrect = selectedOption == questions[index].correctOption;
+        if (isCorrect) correct++;
+        else wrong++;
+        
+        emit AnswerResult(questions[index].text, questions[index].options[selectedOption], isCorrect);
+    }
+    
+    function getQuestion(uint256 index) public view returns (string memory, string[4] memory, uint8) {
+        require(index < questions.length, "Invalid question");
+        Question storage q = questions[index];
+        return (q.text, q.options, q.correctOption);
+    }
+    
+    function getScore() public view returns (uint256, uint256) {
+        return (correct, wrong);
+    }
+}
+```
+
+================================================================
+
+# Practical 6C – Voting System Using Mapping
+
+## 1. Code
+
+**File: Voting.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract Voting {
+    mapping(uint256 => uint256) public votes;
+    mapping(address => bool) public hasVoted;
+    bool public votingOpen = true;
+ 
+    function vote(uint256 candidateId) public {
+        require(votingOpen, "Voting is closed");
+        require(!hasVoted[msg.sender], "Already voted");
+        require(candidateId >= 1 && candidateId <= 3, "Invalid candidate");
+        
+        votes[candidateId]++;
+        hasVoted[msg.sender] = true;
+    }
+ 
+    function closeVoting() public {
+        votingOpen = false;
+    }
+ 
+    function getVotes(uint256 candidateId) public view returns (uint256) {
+        return votes[candidateId];
+    }
+}
+```
+
+=====================================================================
+
+# Practical 7A – Single Inheritance in Solidity: Vehicle and Car
+
+## 1. Code
+
+**File: singleInheritance.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+contract Vehicle {
+    string public vehicleType;
+    string public vehicleNumber;
+    
+    constructor(string memory vType, string memory vNumber) {
+        vehicleType = vType;
+        vehicleNumber = vNumber;
+    }
+    
+    function displayType() public view returns (string memory) {
+        return vehicleType;
+    }
+}
+
+contract Car is Vehicle {
+    string public vehicleColor;
+    string public vehicleBrand;
+    
+    constructor(
+        string memory vType,
+        string memory vNumber,
+        string memory vColor,
+        string memory vBrand
+    ) Vehicle(vType, vNumber) {
+        vehicleColor = vColor;
+        vehicleBrand = vBrand;
+    }
+    
+    function displayBrand() public view returns (string memory) {
+        return vehicleBrand;
+    }
+}
+```
+
+======================================================================
+
+# Practical 7B – Multiple Inheritance in Solidity
+
+## 1. Code
+
+**File: multipleInheritance.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+contract NameData {
+    string public studentName;
+    constructor(string memory name) { studentName = name; }
+}
+
+contract RollData {
+    uint256 public rollNo;
+    constructor(uint256 roll) { rollNo = roll; }
+}
+
+contract Student is NameData, RollData {
+    constructor(string memory name, uint256 roll) NameData(name) RollData(roll) {}
+    
+    function getStudent() public view returns (string memory, uint256) {
+        return (studentName, rollNo);
+    }
+}
+```
+
+=============================================================
+
+# Practical 8A – Payable Ether: Deposit and Transfer
+
+## 1. Code
+
+**File: payableEther.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+contract PayableEther {
+    function deposit() public payable {}
+    
+    function contractBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+    
+    function transferEther(address payable receiver, uint256 amount) public {
+        require(address(this).balance >= amount, "Insufficient contract balance");
+        receiver.transfer(amount);
+    }
+}
+```
+
+=================================================
+
+# Practical 8B – Payable Ether: Simple Bank
+
+## 1. Code
+
+**File: Bank.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+contract Bank {
+    mapping(address => uint256) public balance;
+    
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit must be greater than zero");
+        balance[msg.sender] += msg.value;
+    }
+    
+    function withdraw(uint256 amount) public {
+        require(balance[msg.sender] >= amount, "Insufficient balance");
+        balance[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+    }
+    
+    function transferBalance(address receiver, uint256 amount) public {
+        require(balance[msg.sender] >= amount, "Insufficient balance");
+        balance[msg.sender] -= amount;
+        balance[receiver] += amount;
+    }
+    
+    function showBalance() public view returns (uint256) {
+        return balance[msg.sender];
+    }
+}
+```
+
+=============================================================
+
+# Practical 8C – Student Fee Payment Smart Contract
+
+## 1. Code
+
+**File: StudentFees.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract StudentFees {
+    address public owner;
+    uint256 public feeAmount = 1 ether;
+    mapping(address => uint256) public feesPaid;
+ 
+    constructor() {
+        owner = msg.sender;
+    }
+ 
+    function payFees() public payable {
+        require(msg.value == feeAmount, "Send exact fee amount");
+        feesPaid[msg.sender] += msg.value;
+    }
+ 
+    function setFeeAmount(uint256 newFeeAmount) public {
+        require(msg.sender == owner, "Only owner");
+        require(newFeeAmount > 0, "Fee must be positive");
+        feeAmount = newFeeAmount;
+    }
+ 
+    function withdrawFees() public {
+        require(msg.sender == owner, "Only owner");
+        payable(owner).transfer(address(this).balance);
+    }
+ 
+    function getFeesPaid(address student) public view returns (uint256) {
+        return feesPaid[student];
+    }
+}
+```
+
+=============================================================
+
+# Practical 9 – Smart Contract for Student Scholarship
+
+## 1. Code
+
+**File: StudentScholarship.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract StudentScholarship {
+    struct Student {
+        uint256 studentId;
+        string studentName;
+        string studentCourse;
+        uint256 studentMarks;
+        bool scholarshipEligibility;
+    }
+ 
+    mapping(uint256 => Student) public students;
+    mapping(uint256 => bool) public isRegistered;
+    mapping(uint256 => bool) public hasClaimed;
+    address public owner;
+    uint256 public scholarshipAmount = 4 wei;
+ 
+    constructor() { owner = msg.sender; }
+ 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner");
+        _;
+    }
+ 
+    function addStudent(
+        uint256 studentId, string memory studentName,
+        string memory studentCourse, uint256 studentMarks
+    ) public onlyOwner {
+        require(!isRegistered[studentId], "Student ID already exists");
+        students[studentId] = Student(
+            studentId, studentName, studentCourse,
+            studentMarks, studentMarks >= 60
+        );
+        isRegistered[studentId] = true;
+    }
+ 
+    function getStudent(uint256 studentId)
+        public view returns (uint256, string memory, string memory, uint256, bool)
+    {
+        require(isRegistered[studentId], "Student record not found");
+        Student memory s = students[studentId];
+        return (s.studentId, s.studentName, s.studentCourse, s.studentMarks, s.scholarshipEligibility);
+    }
+ 
+    function depositFunds() public payable onlyOwner {}
+ 
+    function claimScholarship(uint256 studentId) public {
+        require(isRegistered[studentId], "Student record not found");
+        require(students[studentId].scholarshipEligibility, "Student not eligible");
+        require(!hasClaimed[studentId], "Scholarship already claimed");
+        require(address(this).balance >= scholarshipAmount, "Insufficient funds");
+        
+        hasClaimed[studentId] = true;
+        payable(msg.sender).transfer(scholarshipAmount);
+    }
+ 
+    function getTotalFunds() public view returns (uint256) {
+        return address(this).balance;
+    }
+}
+```
+
+=========================================================
+
+# Practical 10 – Configuring a Workspace for a DApp (Addition)
+
+## 1. Code
+
+**File: AdditionDApp.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract AdditionDApp {
+    function add(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+}
+```
+
+**File: index.html**
+```html
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Addition DApp</title></head>
+<body>
+  <h2>Addition DApp</h2>
+  <button id="connect">Connect MetaMask</button>
+  <p id="account"></p>
+  <input id="a" type="number" placeholder="First number">
+  <input id="b" type="number" placeholder="Second number">
+  <button id="add">Add</button>
+  <p id="result"></p>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+```
+
+**File: app.js**
+```javascript
+const contractAddress = "PASTE_DEPLOYED_CONTRACT_ADDRESS";
+const abi = [
+  "function add(uint256 a, uint256 b) pure returns (uint256)"
+];
+let contract;
+ 
+document.getElementById("connect").onclick = async () => {
+  if (!window.ethereum) return alert("Install MetaMask");
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  const signer = await provider.getSigner();
+  contract = new ethers.Contract(contractAddress, abi, signer);
+  document.getElementById("account").textContent = await signer.getAddress();
+};
+ 
+document.getElementById("add").onclick = async () => {
+  if (!contract) return alert("Connect MetaMask first");
+  const a = document.getElementById("a").value;
+  const b = document.getElementById("b").value;
+  const result = await contract.add(a, b);
+  document.getElementById("result").textContent = result.toString();
+};
+```
+
+=============================================
+
+# Practical 11 – DApp for Bank Transactions
+
+## 1. Code
+
+**File: BankDApp.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract BankDApp {
+    mapping(address => uint256) public balances;
+ 
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit must be greater than zero");
+        balances[msg.sender] += msg.value;
+    }
+ 
+    function withdraw(uint256 amount) public {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+    }
+ 
+    function getBalance() public view returns (uint256) {
+        return balances[msg.sender];
+    }
+}
+```
+
+**File: index.html**
+```html
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Bank DApp</title></head>
+<body>
+  <h2>Bank DApp</h2>
+  <button id="connect">Connect MetaMask</button>
+  <p id="account"></p>
+  <input id="depositValue" placeholder="Deposit in ETH">
+  <button id="deposit">Deposit</button>
+  <input id="withdrawValue" placeholder="Withdraw in ETH">
+  <button id="withdraw">Withdraw</button>
+  <button id="balance">Show Balance</button>
+  <p id="result"></p>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+```
+
+**File: app.js**
+```javascript
+const contractAddress = "PASTE_DEPLOYED_CONTRACT_ADDRESS";
+const abi = [
+  "function deposit() payable",
+  "function withdraw(uint256 amount)",
+  "function getBalance() view returns (uint256)"
+];
+let contract;
+ 
+document.getElementById("connect").onclick = async () => {
+  if (!window.ethereum) return alert("Install MetaMask");
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  const signer = await provider.getSigner();
+  contract = new ethers.Contract(contractAddress, abi, signer);
+  document.getElementById("account").textContent = await signer.getAddress();
+};
+ 
+document.getElementById("deposit").onclick = async () => {
+  if (!contract) return alert("Connect MetaMask first");
+  const value = document.getElementById("depositValue").value;
+  const tx = await contract.deposit({ value: ethers.parseEther(value) });
+  await tx.wait();
+  document.getElementById("result").textContent = "Deposit successful";
+};
+ 
+document.getElementById("withdraw").onclick = async () => {
+  if (!contract) return alert("Connect MetaMask first");
+  const value = document.getElementById("withdrawValue").value;
+  const tx = await contract.withdraw(ethers.parseEther(value));
+  await tx.wait();
+  document.getElementById("result").textContent = "Withdrawal successful";
+};
+ 
+document.getElementById("balance").onclick = async () => {
+  if (!contract) return alert("Connect MetaMask first");
+  const value = await contract.getBalance();
+  document.getElementById("result").textContent = ethers.formatEther(value) + " ETH";
+};
+```
+
+==================================================
+
+# Practical 12A – DApp for Prime or Composite Number
+
+## 1. Code
+
+**File: PrimeCheck.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract PrimeCheck {
+    function isPrime(uint256 number) public pure returns (bool) {
+        if (number < 2) return false;
+        for (uint256 i = 2; i <= number / i; i++) {
+            if (number % i == 0) return false;
+        }
+        return true;
+    }
+}
+```
+
+**File: index.html**
+```html
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Prime Check DApp</title></head>
+<body>
+  <h2>Prime / Composite Check</h2>
+  <button id="connect">Connect MetaMask</button>
+  <input id="number" type="number" placeholder="Enter number">
+  <button id="check">Check</button>
+  <p id="result"></p>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+```
+
+**File: app.js**
+```javascript
+const contractAddress = "PASTE_DEPLOYED_CONTRACT_ADDRESS";
+const abi = ["function isPrime(uint256 number) pure returns (bool)"];
+let contract;
+ 
+document.getElementById("connect").onclick = async () => {
+  if (!window.ethereum) return alert("Install MetaMask");
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  contract = new ethers.Contract(contractAddress, abi, await provider.getSigner());
+};
+ 
+document.getElementById("check").onclick = async () => {
+  if (!contract) return alert("Connect MetaMask first");
+  const n = document.getElementById("number").value;
+  const prime = await contract.isPrime(n);
+  document.getElementById("result").textContent =
+    Number(n) < 2 ? "Neither prime nor composite" : prime ? "Prime" : "Composite";
+};
+```
+
+==================================================
+
+# Practical 12B – Voting DApp (Multiple Accounts)
+
+## 1. Code
+
+**File: VotingDApp.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract VotingDApp {
+    mapping(uint256 => uint256) public votes;
+    mapping(address => bool) public hasVoted;
+ 
+    function vote(uint256 candidateId) public {
+        require(candidateId >= 1 && candidateId <= 3, "Invalid candidate");
+        require(!hasVoted[msg.sender], "Already voted");
+        hasVoted[msg.sender] = true;
+        votes[candidateId]++;
+    }
+ 
+    function getVotes(uint256 candidateId) public view returns (uint256) {
+        return votes[candidateId];
+    }
+}
+```
+
+**File: index.html**
+```html
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Voting DApp</title></head>
+<body>
+  <h2>Voting DApp</h2>
+  <button id="connect">Connect MetaMask</button>
+  <p id="account"></p>
+  <input id="candidate" type="number" min="1" max="3" placeholder="Candidate ID 1-3">
+  <button id="vote">Vote</button>
+  <input id="resultCandidate" type="number" min="1" max="3" placeholder="Candidate ID">
+  <button id="results">Show Votes</button>
+  <p id="result"></p>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+```
+
+**File: app.js**
+```javascript
+const contractAddress = "PASTE_DEPLOYED_CONTRACT_ADDRESS";
+const abi = [
+  "function vote(uint256 candidateId)",
+  "function getVotes(uint256 candidateId) view returns (uint256)"
+];
+let contract;
+ 
+document.getElementById("connect").onclick = async () => {
+  if (!window.ethereum) return alert("Install MetaMask");
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  const signer = await provider.getSigner();
+  contract = new ethers.Contract(contractAddress, abi, signer);
+  document.getElementById("account").textContent = await signer.getAddress();
+};
+ 
+document.getElementById("vote").onclick = async () => {
+  if (!contract) return alert("Connect MetaMask first");
+  const tx = await contract.vote(document.getElementById("candidate").value);
+  await tx.wait();
+  document.getElementById("result").textContent = "Vote recorded";
+};
+ 
+document.getElementById("results").onclick = async () => {
+  if (!contract) return alert("Connect MetaMask first");
+  const count = await contract.getVotes(document.getElementById("resultCandidate").value);
+  document.getElementById("result").textContent = "Votes: " + count.toString();
+};
+```
+
+======================================
+
+# Practical 13 – DApp Using Hardhat
+
+## 1. Code
+
+**File: contracts/Addition.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract Addition {
+    function add(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+}
+```
+
+**File: contracts/StudentRegistration.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract StudentRegistration {
+    struct Student {
+        string name;
+        uint256 rollNo;
+    }
+    mapping(uint256 => Student) public students;
+ 
+    function registerStudent(uint256 rollNo, string memory name) public {
+        students[rollNo] = Student(name, rollNo);
+    }
+ 
+    function getStudent(uint256 rollNo) public view returns (string memory, uint256) {
+        Student memory s = students[rollNo];
+        return (s.name, s.rollNo);
+    }
+}
+```
+
+____________________________________________________________________
+
+# Practical 14 – Simple Student Chaincode Using Hyperledger Fabric
+
+## 1. Code
+
+**File: student.js**
+```javascript
+'use strict';
+ 
+const { Contract } = require('fabric-contract-api');
+ 
+class StudentContract extends Contract {
+  async createStudent(ctx, id, name, course, marks) {
+    const key = `STUDENT_${id}`;
+    const exists = await ctx.stub.getState(key);
+    if (exists && exists.length > 0) {
+      throw new Error(`Student ${id} already exists`);
+    }
+    const student = { id, name, course, marks: Number(marks) };
+    await ctx.stub.putState(key, Buffer.from(JSON.stringify(student)));
+    return JSON.stringify(student);
+  }
+ 
+  async readStudent(ctx, id) {
+    const key = `STUDENT_${id}`;
+    const data = await ctx.stub.getState(key);
+    if (!data || data.length === 0) {
+      throw new Error(`Student ${id} does not exist`);
+    }
+    return data.toString();
+  }
+ 
+  async updateStudent(ctx, id, name, course, marks) {
+    const key = `STUDENT_${id}`;
+    const data = await ctx.stub.getState(key);
+    if (!data || data.length === 0) {
+      throw new Error(`Student ${id} does not exist`);
+    }
+    const student = { id, name, course, marks: Number(marks) };
+    await ctx.stub.putState(key, Buffer.from(JSON.stringify(student)));
+    return JSON.stringify(student);
+  }
+ 
+  async deleteStudent(ctx, id) {
+    const key = `STUDENT_${id}`;
+    const data = await ctx.stub.getState(key);
+    if (!data || data.length === 0) {
+      throw new Error(`Student ${id} does not exist`);
+    }
+    await ctx.stub.deleteState(key);
+    return `Student ${id} deleted`;
+  }
+}
+ 
+module.exports = StudentContract;
+```
+
+______________________________________________________________
+
+# Practical 15A – Online Shopping Smart Contract
+
+## 1. Code
+
+**File: onlineShopping.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract Product {
+    uint256 public productId;
+    string public productName;
+    uint256 public price;
+    uint256 public stock;
+ 
+    constructor(uint256 id, string memory name, uint256 productPrice, uint256 productStock) {
+        productId = id;
+        productName = name;
+        price = productPrice;
+        stock = productStock;
+    }
+ 
+    function displayProduct() public view returns (uint256, string memory, uint256, uint256) {
+        return (productId, productName, price, stock);
+    }
+}
+ 
+contract OnlineStore is Product {
+    address public owner;
+    mapping(address => uint256) public purchases;
+ 
+    constructor(uint256 id, string memory name, uint256 productPrice, uint256 productStock)
+        Product(id, name, productPrice, productStock) {
+        owner = msg.sender;
+    }
+ 
+    function buy(uint256 quantity) public payable {
+        require(quantity > 0 && quantity <= stock, "Invalid quantity");
+        require(msg.value == price * quantity, "Incorrect payment");
+        stock -= quantity;
+        purchases[msg.sender] += quantity;
+    }
+ 
+    function withdrawPayments() public {
+        require(msg.sender == owner, "Only owner");
+        payable(owner).transfer(address(this).balance);
+    }
+}
+```
+
+___________________________________________________________________
+
+# Practical 15B – Vehicle Rental Smart Contract
+
+## 1. Code
+
+**File: VehicleRental.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract VehicleRental {
+    struct Vehicle {
+        string name;
+        uint256 dailyRate;
+        bool available;
+    }
+ 
+    mapping(uint256 => Vehicle) public vehicles;
+    mapping(address => uint256) public rentalVehicle;
+    uint256 public nextVehicleId = 1;
+ 
+    function addVehicle(string memory name, uint256 dailyRate) public {
+        require(dailyRate > 0, "Rate must be positive");
+        vehicles[nextVehicleId] = Vehicle(name, dailyRate, true);
+        nextVehicleId++;
+    }
+ 
+    function rentVehicle(uint256 vehicleId, uint256 daysToRent) public payable {
+        Vehicle storage v = vehicles[vehicleId];
+        require(v.available, "Vehicle unavailable");
+        require(daysToRent > 0, "Invalid rental duration");
+        require(msg.value == v.dailyRate * daysToRent, "Incorrect rental payment");
+        
+        v.available = false;
+        rentalVehicle[msg.sender] = vehicleId;
+    }
+ 
+    function returnVehicle(uint256 vehicleId) public {
+        require(rentalVehicle[msg.sender] == vehicleId, "Not your rental");
+        vehicles[vehicleId].available = true;
+        delete rentalVehicle[msg.sender];
+    }
+}
+```
+
+__________________________________________________________________________
+
+# Practical 15C – Doctor Appointment Smart Contract
+
+## 1. Code
+
+**File: DoctorAppointment.sol**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+ 
+contract DoctorAppointment {
+    address public owner;
+    uint256 public appointmentFee = 100;
+    uint256 public nextAppointmentId = 1;
+ 
+    struct Appointment {
+        address patient;
+        string doctorName;
+        uint256 timeSlot;
+        bool cancelled;
+    }
+ 
+    mapping(uint256 => Appointment) public appointments;
+ 
+    constructor() { owner = msg.sender; }
+ 
+    function bookAppointment(string memory doctorName, uint256 timeSlot)
+        public payable returns (uint256)
+    {
+        require(msg.value == appointmentFee, "Incorrect fee");
+        uint256 id = nextAppointmentId++;
+        appointments[id] = Appointment(msg.sender, doctorName, timeSlot, false);
+        return id;
+    }
+ 
+    function cancelAppointment(uint256 appointmentId) public {
+        Appointment storage a = appointments[appointmentId];
+        require(a.patient == msg.sender, "Not your appointment");
+        require(!a.cancelled, "Already cancelled");
+        
+        a.cancelled = true;
+        payable(msg.sender).transfer(appointmentFee);
+    }
+ 
+    function setAppointmentFee(uint256 newFee) public {
+        require(msg.sender == owner, "Only owner");
+        appointmentFee = newFee;
+    }
+}
+```
